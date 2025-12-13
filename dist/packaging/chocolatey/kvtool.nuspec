@@ -1,0 +1,17 @@
+<?xml version="1.0"?>
+<package>
+  <metadata>
+    <id>kvtool</id>
+    <version>0.1.0</version>
+    <title>kvtool CLI</title>
+    <authors>YourOrg</authors>
+    <owners>YourOrg</owners>
+    <description>Cross-platform CLI for Azure Key Vault secrets and keys.</description>
+    <projectUrl>https://github.com/YOUR_ORG/kv-tool</projectUrl>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <licenseUrl>https://opensource.org/licenses/MIT</licenseUrl>
+  </metadata>
+  <files>
+    <file src="tools\**" target="tools" />
+  </files>
+</package>
