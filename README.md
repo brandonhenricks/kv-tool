@@ -117,17 +117,6 @@ scoop install kvtool
 
 ---
 
-## Repo Notes (turning off dotnet tool)
-
-If your project previously used dotnet tool packaging, remove from `KeyVaultTool.csproj`:
-
-- `<PackAsTool>true</PackAsTool>`
-- `<ToolCommandName>kvtool</ToolCommandName>`
-
-Everything else can stay the same.
-
----
-
 ## Security Notes
 
 - Avoid `--show-values` in shared terminals/logged sessions.

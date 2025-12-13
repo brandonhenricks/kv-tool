@@ -34,7 +34,7 @@ public sealed class ListKeysCommand : AsyncCommand<ListKeysSettings>
 
         try
         {
-            var keys = await keyService.GetKeysAsync(vaultUri);
+            var keys = await keyService.GetKeysAsync(vaultUri, cancellationToken);
 
             var table = new Table()
                 .AddColumn("Name")
