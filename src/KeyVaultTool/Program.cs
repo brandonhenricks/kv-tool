@@ -32,6 +32,9 @@ services.AddSingleton<IKeyVaultSecretServiceFactory, KeyVaultSecretServiceFactor
 services.AddSingleton<IKeySyncServiceFactory, KeySyncServiceFactory>();
 services.AddSingleton<ISecretSyncServiceFactory, SecretSyncServiceFactory>();
 
+var commandRegistry = new CommandRegistry();
+services.AddSingleton(commandRegistry);
+
 var registrar = new TypeRegistrar(services);
 var app = new CommandApp<RootCommand>(registrar);
 
@@ -39,23 +42,20 @@ app.Configure(config =>
 {
     config.SetApplicationName("kvtool");
 
-    config.AddCommand<ListSecretsCommand>("list-secrets")
-        .WithDescription("List secrets in a Key Vault.");
-
-    config.AddCommand<ListKeysCommand>("list-keys")
-        .WithDescription("List keys in a Key Vault.");
-
-    config.AddCommand<CompareSecretsCommand>("compare-secrets")
-        .WithDescription("Compare secrets between two Key Vaults.");
-
-    config.AddCommand<CompareKeysCommand>("compare-keys")
-        .WithDescription("Compare keys between two Key Vaults.");
-
-    config.AddCommand<SyncSecretsCommand>("sync-secrets")
-        .WithDescription("Sync secrets from a source Key Vault to a target Key Vault.");
-
-    config.AddCommand<SyncKeysCommand>("sync-keys")
-        .WithDescription("Sync keys from a source Key Vault to a target Key Vault.");
+    RegisterCommand<HelpCommand>(config, commandRegistry.HelpCommand);
+    RegisterCommand<ListSecretsCommand>(config, CommandRegistry.GetDescriptor<ListSecretsCommand>());
+    RegisterCommand<ListKeysCommand>(config, CommandRegistry.GetDescriptor<ListKeysCommand>());
+    RegisterCommand<CompareSecretsCommand>(config, CommandRegistry.GetDescriptor<CompareSecretsCommand>());
+    RegisterCommand<CompareKeysCommand>(config, CommandRegistry.GetDescriptor<CompareKeysCommand>());
+    RegisterCommand<SyncSecretsCommand>(config, CommandRegistry.GetDescriptor<SyncSecretsCommand>());
+    RegisterCommand<SyncKeysCommand>(config, CommandRegistry.GetDescriptor<SyncKeysCommand>());
 });
+
+static void RegisterCommand<TCommand>(IConfigurator config, CommandDescriptor descriptor)
+    where TCommand : class, ICommand
+{
+    config.AddCommand<TCommand>(descriptor.Name)
+        .WithDescription(descriptor.Description);
+}
 
 return await app.RunAsync(args);
