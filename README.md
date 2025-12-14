@@ -16,7 +16,9 @@ A cross-platform CLI for listing, comparing, and syncing Azure Key Vault **Secre
 ## Build & Run (local)
 
 ### Prereqs
+
 - .NET SDK 10
+
 ## Publish as a CLI binary (recommended)
 
 This project now ships **kvtool** as a native CLI binary instead of a .NET tool.
@@ -49,6 +51,7 @@ Use those artifacts when updating downstream distribution feeds.
 ### GitHub Releases (baseline)
 
 Each release publishes:
+
 * `kvtool-<version>-win-x64.zip`
 * `kvtool-<version>-linux-x64.tar.gz`
 * `kvtool-<version>-osx-arm64.tar.gz`
@@ -79,6 +82,7 @@ See [SECURITY.md](SECURITY.md) for guidance about avoiding `--show-values` in sh
 2. Submit to the `microsoft/winget-pkgs` repo (public) or your enterprise/private WinGet source.
 
 **User install**
+
 ```powershell
 winget install YourOrg.KvTool
 ```
@@ -88,9 +92,11 @@ WinGet is excellent for enterprise distribution when paired with Intune / endpoi
 ---
 
 ### Option E: Scoop (Windows, developer-friendly)
+
 If your audience is developer-heavy, Scoop is a nice lightweight alternative.
 
 **User install**
+
 ```powershell
 scoop bucket add your-org https://github.com/your-org/scoop-bucket
 scoop install kvtool
