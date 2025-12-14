@@ -1,8 +1,7 @@
-﻿using Azure.Core;
-using KeyVaultTool.Auth;
-using KeyVaultTool.Features.Keys.Settings;
+﻿using KeyVaultTool.Features.Keys.Settings;
 using KeyVaultTool.Infrastructure.KeyVault;
 using KeyVaultTool.Shared;
+using Microsoft.Extensions.Logging;
 using Spectre.Console;
 using Spectre.Console.Cli;
 
@@ -10,30 +9,23 @@ namespace KeyVaultTool.Features.Keys.Commands;
 
 public sealed class ListKeysCommand : AsyncCommand<ListKeysSettings>
 {
-    private readonly ICredentialFactory _credentialFactory;
+    private readonly IKeyVaultKeyServiceFactory _keyServiceFactory;
+    private readonly ILogger<ListKeysCommand> _logger;
 
-    public ListKeysCommand(ICredentialFactory credentialFactory) => _credentialFactory = credentialFactory;
+    public ListKeysCommand(IKeyVaultKeyServiceFactory keyServiceFactory, ILogger<ListKeysCommand> logger)
+    {
+        _keyServiceFactory = keyServiceFactory;
+        _logger = logger;
+    }
 
     public override async Task<int> ExecuteAsync(CommandContext context, ListKeysSettings settings, CancellationToken cancellationToken)
     {
         var authOptions = CommandHelpers.BuildAuthOptions(settings.AuthMode, settings.TenantId, settings.ClientId, settings.ClientSecret);
-
-        TokenCredential credential;
-        try
-        {
-            credential = _credentialFactory.Create(authOptions);
-        }
-        catch (Exception ex)
-        {
-            AnsiConsole.MarkupLine($"[red]Failed to create credential: {ex.Message}[/]");
-            return -1;
-        }
-
         var vaultUri = CommandHelpers.BuildVaultUri(settings.Vault);
-        var keyService = new AzureKeyVaultKeyService(credential);
 
         try
         {
+            var keyService = _keyServiceFactory.Create(authOptions);
             var keys = await keyService.GetKeysAsync(vaultUri, cancellationToken);
 
             var table = new Table()
@@ -58,6 +50,7 @@ public sealed class ListKeysCommand : AsyncCommand<ListKeysSettings>
         }
         catch (Exception ex)
         {
+            _logger.LogError(ex, "Failed to list keys from {Vault}.", vaultUri);
             AnsiConsole.MarkupLine($"[red]Error listing keys: {ex.Message}[/]");
             return -1;
         }

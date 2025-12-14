@@ -1,15 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Threading;
-using System.Threading.Tasks;
-using Azure.Core;
-using KeyVaultTool.Auth;
+﻿using KeyVaultTool.Auth;
 using KeyVaultTool.Features.Keys.Commands;
-using KeyVaultTool.Features.Keys.Models;
 using KeyVaultTool.Features.Keys.Settings;
+using KeyVaultTool.Infrastructure.KeyVault;
+using Microsoft.Extensions.Logging;
 using Moq;
 using Spectre.Console.Cli;
-using Xunit;
 
 namespace KeyVaultTool.Tests.Features.Keys.Commands;
 
@@ -18,9 +13,10 @@ public class ListKeysCommandTests
     [Fact]
     public async Task ExecuteAsync_ReturnsMinusOne_WhenCredentialFactoryThrows()
     {
-        var credentialFactory = new Mock<ICredentialFactory>(MockBehavior.Strict);
-        credentialFactory.Setup(f => f.Create(It.IsAny<AuthOptions>())).Throws(new Exception("fail"));
-        var command = new ListKeysCommand(credentialFactory.Object);
+        var keyServiceFactory = new Mock<IKeyVaultKeyServiceFactory>(MockBehavior.Strict);
+        keyServiceFactory.Setup(f => f.Create(It.IsAny<AuthOptions>())).Throws(new Exception("fail"));
+        var logger = new Mock<ILogger<ListKeysCommand>>(MockBehavior.Loose).Object;
+        var command = new ListKeysCommand(keyServiceFactory.Object, logger);
         var settings = new ListKeysSettings { Vault = "test-vault" };
         var context = new CommandContext(
             arguments: Array.Empty<string>(),

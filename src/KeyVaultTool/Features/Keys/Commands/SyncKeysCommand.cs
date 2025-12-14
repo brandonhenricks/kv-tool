@@ -1,82 +1,28 @@
-﻿using Azure.Core;
-using KeyVaultTool.Auth;
+﻿using KeyVaultTool.Auth;
+using KeyVaultTool.Features.Common.Commands;
 using KeyVaultTool.Features.Keys.Contracts;
-using KeyVaultTool.Features.Keys.Services;
 using KeyVaultTool.Features.Keys.Settings;
-using KeyVaultTool.Infrastructure.KeyVault;
-using KeyVaultTool.Shared;
-using Spectre.Console;
-using Spectre.Console.Cli;
+using Microsoft.Extensions.Logging;
 
 namespace KeyVaultTool.Features.Keys.Commands;
 
-public sealed class SyncKeysCommand : AsyncCommand<SyncKeysSettings>
+public sealed class SyncKeysCommand : BaseSyncCommand<SyncKeysSettings>
 {
-    private readonly ICredentialFactory _credentialFactory;
-    private readonly IKeyComparer _comparer;
+    private readonly IKeySyncServiceFactory _syncServiceFactory;
 
-    public SyncKeysCommand(ICredentialFactory credentialFactory, IKeyComparer comparer)
+    public SyncKeysCommand(IKeySyncServiceFactory syncServiceFactory, ILogger<SyncKeysCommand> logger)
+        : base(logger)
     {
-        _credentialFactory = credentialFactory;
-        _comparer = comparer;
+        _syncServiceFactory = syncServiceFactory;
     }
 
-    public override async Task<int> ExecuteAsync(CommandContext context, SyncKeysSettings settings, CancellationToken cancellationToken)
+    protected override string StatusMessage => "Syncing keys...";
+
+    protected override string EntityDisplayName => "keys";
+
+    protected override Task ExecuteSyncAsync(AuthOptions authOptions, Uri sourceVault, Uri targetVault, SyncKeysSettings settings, CancellationToken cancellationToken)
     {
-        var authOptions = CommandHelpers.BuildAuthOptions(settings.AuthMode, settings.TenantId, settings.ClientId, settings.ClientSecret);
-
-        TokenCredential credential;
-        try
-        {
-            credential = _credentialFactory.Create(authOptions);
-        }
-        catch (Exception ex)
-        {
-            AnsiConsole.MarkupLine($"[red]Failed to create credential: {ex.Message}[/]");
-            return -1;
-        }
-
-        var sourceUri = CommandHelpers.BuildVaultUri(settings.SourceVault);
-        var targetUri = CommandHelpers.BuildVaultUri(settings.TargetVault);
-
-        if (!settings.Yes)
-        {
-            var proceed = await AnsiConsole.ConfirmAsync(
-                $"Sync keys from [yellow]{sourceUri}[/] to [yellow]{targetUri}[/]?" +
-                (settings.AllowOverwrite ? " [red](overwrites enabled)[/]" : " (missing only)"), cancellationToken: cancellationToken);
-
-            if (!proceed)
-            {
-                AnsiConsole.MarkupLine("[grey]Aborted.[/]");
-                return 0;
-            }
-        }
-
-        using var cts = new CancellationTokenSource();
-        Console.CancelKeyPress += (_, e) => { e.Cancel = true; cts.Cancel(); };
-
-        try
-        {
-            await AnsiConsole.Status().StartAsync("Syncing keys...", async _ =>
-            {
-                var keyService = new AzureKeyVaultKeyService(credential);
-                var syncService = new KeySyncService(keyService, _comparer);
-
-                await syncService.SyncAsync(sourceUri, targetUri, settings.AllowOverwrite, cts.Token);
-            });
-
-            AnsiConsole.MarkupLine("[green]Sync completed.[/]");
-            return 0;
-        }
-        catch (OperationCanceledException)
-        {
-            AnsiConsole.MarkupLine("[yellow]Operation cancelled.[/]");
-            return -1;
-        }
-        catch (Exception ex)
-        {
-            AnsiConsole.MarkupLine($"[red]Error during sync: {ex.Message}[/]");
-            return -1;
-        }
+        var syncService = _syncServiceFactory.Create(authOptions);
+        return syncService.SyncAsync(sourceVault, targetVault, settings.AllowOverwrite, cancellationToken);
     }
 }

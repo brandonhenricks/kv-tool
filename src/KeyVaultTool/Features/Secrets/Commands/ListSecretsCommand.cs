@@ -1,8 +1,7 @@
-﻿using Azure.Core;
-using KeyVaultTool.Auth;
-using KeyVaultTool.Features.Secrets.Settings;
+﻿using KeyVaultTool.Features.Secrets.Settings;
 using KeyVaultTool.Infrastructure.KeyVault;
 using KeyVaultTool.Shared;
+using Microsoft.Extensions.Logging;
 using Spectre.Console;
 using Spectre.Console.Cli;
 
@@ -10,30 +9,26 @@ namespace KeyVaultTool.Features.Secrets.Commands;
 
 public sealed class ListSecretsCommand : AsyncCommand<ListSecretsSettings>
 {
-    private readonly ICredentialFactory _credentialFactory;
+    private readonly IKeyVaultSecretServiceFactory _secretServiceFactory;
+    private readonly ILogger<ListSecretsCommand> _logger;
 
-    public ListSecretsCommand(ICredentialFactory credentialFactory) => _credentialFactory = credentialFactory;
+    public ListSecretsCommand(IKeyVaultSecretServiceFactory secretServiceFactory, ILogger<ListSecretsCommand> logger)
+    {
+        _secretServiceFactory = secretServiceFactory;
+        _logger = logger;
+    }
 
     public override async Task<int> ExecuteAsync(CommandContext context, ListSecretsSettings settings, CancellationToken cancellationToken)
     {
         var authOptions = CommandHelpers.BuildAuthOptions(settings.AuthMode, settings.TenantId, settings.ClientId, settings.ClientSecret);
-
-        TokenCredential credential;
-        try { credential = _credentialFactory.Create(authOptions); }
-        catch (Exception ex)
-        {
-            AnsiConsole.MarkupLine($"[red]Failed to create credential: {ex.Message}[/]");
-            return -1;
-        }
-
         var vaultUri = CommandHelpers.BuildVaultUri(settings.Vault);
-        var secretService = new AzureKeyVaultSecretService(credential);
 
         if (settings.ShowValues)
             AnsiConsole.MarkupLine("[yellow]Warning: secret values will be printed to the console.[/]");
 
         try
         {
+            var secretService = _secretServiceFactory.Create(authOptions);
             var secrets = await secretService.GetSecretsAsync(vaultUri, cancellationToken);
 
             var table = new Table()
@@ -58,6 +53,7 @@ public sealed class ListSecretsCommand : AsyncCommand<ListSecretsSettings>
         }
         catch (Exception ex)
         {
+            _logger.LogError(ex, "Failed to list secrets from {Vault}.", vaultUri);
             AnsiConsole.MarkupLine($"[red]Error listing secrets: {ex.Message}[/]");
             return -1;
         }

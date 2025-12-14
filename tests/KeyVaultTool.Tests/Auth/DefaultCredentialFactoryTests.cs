@@ -1,8 +1,5 @@
-﻿using System;
-using Azure.Core;
-using Azure.Identity;
+﻿using Azure.Identity;
 using KeyVaultTool.Auth;
-using Xunit;
 
 namespace KeyVaultTool.Tests.Auth;
 

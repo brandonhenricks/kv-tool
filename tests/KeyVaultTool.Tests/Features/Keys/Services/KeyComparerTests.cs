@@ -1,7 +1,5 @@
-﻿using System.Collections.Generic;
-using KeyVaultTool.Features.Keys.Models;
+﻿using KeyVaultTool.Features.Keys.Models;
 using KeyVaultTool.Features.Keys.Services;
-using Xunit;
 
 namespace KeyVaultTool.Tests.Features.Keys.Services;
 
