@@ -36,7 +36,7 @@ jobs:
           fi
       - name: Test
         if: steps.discover-tests.outputs.has_tests == 'true'
-        run: dotnet test -c Release -nologoname: "CI: Build and Test"
+        run: dotnet test -c Release -nologo
 
 permissions:
   contents: read
