@@ -37,7 +37,7 @@ public sealed class AzureKeyVaultSecretService : IKeyVaultSecretService
 
     public async Task SetSecretAsync(Uri vaultUri, SecretSnapshot secret, bool overwrite, CancellationToken cancellationToken = default)
     {
-        if (secret.Enabled is false)
+        if (!secret.Enabled)
             return;
 
         var client = new SecretClient(vaultUri, _credential);
