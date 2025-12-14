@@ -22,7 +22,7 @@ public sealed class CompareKeysCommand : AsyncCommand<CompareKeysSettings>
 
     public override async Task<int> ExecuteAsync(CommandContext context, CompareKeysSettings settings, CancellationToken cancellationToken)
     {
-        var authOptions = CommandHelpers.BuildAuthOptions(settings.AuthMode, settings.TenantId, settings.ClientId, settings.ClientSecret);
+        var authOptions = CommandHelpers.BuildAuthOptions(settings.AuthMode.Value, settings.TenantId, settings.ClientId, settings.ClientSecret);
 
         TokenCredential credential;
         try
@@ -43,7 +43,7 @@ public sealed class CompareKeysCommand : AsyncCommand<CompareKeysSettings>
         try
         {
             var sourceKeys = await keyService.GetKeysAsync(sourceUri, cancellationToken);
-            var targetKeys = await keyService.GetKeysAsync(targetUri);
+            var targetKeys = await keyService.GetKeysAsync(targetUri, cancellationToken);
 
             var diff = _comparer.Compare(sourceKeys, targetKeys);
 

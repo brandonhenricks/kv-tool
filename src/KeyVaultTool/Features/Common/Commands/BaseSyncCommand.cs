@@ -30,7 +30,7 @@ public abstract class BaseSyncCommand<TSettings> : AsyncCommand<TSettings>
 
     public override sealed async Task<int> ExecuteAsync(CommandContext context, TSettings settings, CancellationToken cancellationToken)
     {
-        var authOptions = CommandHelpers.BuildAuthOptions(settings.AuthMode, settings.TenantId, settings.ClientId, settings.ClientSecret);
+        var authOptions = CommandHelpers.BuildAuthOptions(settings.AuthMode.Value, settings.TenantId, settings.ClientId, settings.ClientSecret);
         var sourceUri = CommandHelpers.BuildVaultUri(settings.SourceVault);
         var targetUri = CommandHelpers.BuildVaultUri(settings.TargetVault);
 

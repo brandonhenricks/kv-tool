@@ -22,7 +22,7 @@ public sealed class CompareSecretsCommand : AsyncCommand<CompareSecretsSettings>
 
     public override async Task<int> ExecuteAsync(CommandContext context, CompareSecretsSettings settings, CancellationToken cancellationToken)
     {
-        var authOptions = CommandHelpers.BuildAuthOptions(settings.AuthMode, settings.TenantId, settings.ClientId, settings.ClientSecret);
+        var authOptions = CommandHelpers.BuildAuthOptions(settings.AuthMode.Value, settings.TenantId, settings.ClientId, settings.ClientSecret);
 
         TokenCredential credential;
         try { credential = _credentialFactory.Create(authOptions); }
@@ -42,8 +42,8 @@ public sealed class CompareSecretsCommand : AsyncCommand<CompareSecretsSettings>
 
         try
         {
-            var sourceSecrets = await secretService.GetSecretsAsync(sourceUri);
-            var targetSecrets = await secretService.GetSecretsAsync(targetUri);
+            var sourceSecrets = await secretService.GetSecretsAsync(sourceUri, cancellationToken);
+            var targetSecrets = await secretService.GetSecretsAsync(targetUri, cancellationToken);
 
             var diff = _comparer.Compare(sourceSecrets, targetSecrets);
 

@@ -10,8 +10,10 @@ public abstract class SyncCommandSettings : CommandSettings
     [CommandOption("--target-vault <NAME_OR_URI>")]
     public string TargetVault { get; init; } = default!;
 
-    [CommandOption("--auth [cli|devicecode|sp]")]
-    public string AuthMode { get; init; } = "cli";
+    [CommandOption("--auth <cli|devicecode|sp>")]
+#pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring as nullable.
+    public FlagValue<string> AuthMode { get; init; }
+#pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring as nullable.
 
     [CommandOption("--tenant-id <TENANT>")]
     public string? TenantId { get; init; }
